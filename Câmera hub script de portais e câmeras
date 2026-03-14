@@ -1,0 +1,982 @@
+--[[
+    ██████╗ █████╗ ███╗   ███╗███████╗██████╗ █████╗ 
+    ██╔════╝██╔══██╗████╗ ████║██╔════╝██╔══██╗██╔══██╗
+    ██║     ███████║██╔████╔██║█████╗  ██████╔╝███████║
+    ██║     ██╔══██║██║╚██╔╝██║██╔══╝  ██╔══██╗██╔══██║
+    ╚██████╗██║  ██║██║ ╚═╝ ██║███████╗██║  ██║██║  ██║
+     ╚═════╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝
+    
+    CAMERA HUB - SISTEMA COMPLETO
+    Versão: 2.0.0
+    Data: 2026
+]]
+
+-- ==================== SISTEMA DE VERSÃO ====================
+local VERSION = "2.0.0"
+local SCRIPT_URL = "https://raw.githubusercontent.com/seu_usuario/seu_repo/main/camera_hub.lua" -- COLOQUE SUA URL AQUI!
+local GITHUB_RAW_URL = "https://raw.githubusercontent.com/seu_usuario/seu_repo/main/version.txt" -- URL para arquivo de versão
+
+local function checkForUpdates()
+    local success, result = pcall(function()
+        return game:HttpGet(GITHUB_RAW_URL)
+    end)
+    
+    if success and result then
+        local latestVersion = result:match("VERSION=(%d+%.%d+%.%d+)")
+        if latestVersion and latestVersion ~= VERSION then
+            return true, latestVersion
+        end
+    end
+    return false, VERSION
+end
+
+local function updateScript()
+    local success, newScript = pcall(function()
+        return game:HttpGet(SCRIPT_URL)
+    end)
+    
+    if success and newScript then
+        return true, newScript
+    end
+    return false, nil
+end
+
+-- ==================== INTERFACE DE ATUALIZAÇÃO ====================
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+-- Criar aba de versão
+local Window = Rayfield:CreateWindow({
+    Name = "Sistema Completo v" .. VERSION,
+    LoadingTitle = "Camera Hub",
+    LoadingSubtitle = "Versão " .. VERSION,
+    Theme = "Dark"
+})
+
+local SectionVersao = Window:CreateTab("🔄 Atualizações", 4483362458)
+
+-- Label de versão atual
+local versionLabel = SectionVersao:CreateLabel("📌 Versão Atual: " .. VERSION)
+
+-- Status da atualização
+local updateStatus = SectionVersao:CreateLabel("🔍 Verificando atualizações...")
+
+-- Botão de verificar
+SectionVersao:CreateButton({
+    Name = "🔍 Verificar Atualizações",
+    Callback = function()
+        updateStatus:Set("⏳ Verificando...")
+        task.wait(1)
+        
+        local hasUpdate, latestVer = checkForUpdates()
+        
+        if hasUpdate then
+            updateStatus:Set("✅ Nova versão disponível: " .. latestVer)
+            Rayfield:Notify({
+                Title = "Atualização Disponível",
+                Content = "Versão " .. latestVer .. " disponível!",
+                Duration = 5
+            })
+        else
+            updateStatus:Set("✅ Você está na versão mais recente!")
+            Rayfield:Notify({
+                Title = "Sem Atualizações",
+                Content = "Versão " .. VERSION .. " é a mais recente",
+                Duration = 3
+            })
+        end
+    end
+})
+
+-- Botão de atualizar
+local updateButton = SectionVersao:CreateButton({
+    Name = "⬇️ ATUALIZAR SCRIPT",
+    Callback = function()
+        updateStatus:Set("⏳ Baixando atualização...")
+        
+        local success, newScript = updateScript()
+        
+        if success and newScript then
+            updateStatus:Set("✅ Script atualizado! Recarregando...")
+            Rayfield:Notify({
+                Title = "Atualização Concluída",
+                Content = "Script atualizado com sucesso!",
+                Duration = 3
+            })
+            
+            -- Fechar interface atual
+            for _, v in pairs(getconnections(game:GetService("CoreGui").ChildAdded)) do
+                v:Disable()
+            end
+            
+            -- Carregar novo script
+            task.wait(1)
+            loadstring(newScript)()
+            
+            -- Fechar esta instância
+            local gui = script:FindFirstAncestorWhichIsA("ScreenGui")
+            if gui then gui:Destroy() end
+        else
+            updateStatus:Set("❌ Erro ao baixar atualização!")
+            Rayfield:Notify({
+                Title = "Erro",
+                Content = "Não foi possível atualizar o script",
+                Duration = 3
+            })
+        end
+    end
+})
+
+-- Informações adicionais
+SectionVersao:CreateLabel("━━━━━━━━━━━━━━━━━━━━")
+SectionVersao:CreateLabel("📋 Instruções:")
+SectionVersao:CreateLabel("1. Clique em 'Verificar Atualizações'")
+SectionVersao:CreateLabel("2. Se houver atualização, clique em")
+SectionVersao:CreateLabel("   'ATUALIZAR SCRIPT'")
+SectionVersao:CreateLabel("3. O script será recarregado")
+SectionVersao:CreateLabel("   automaticamente")
+SectionVersao:CreateLabel("━━━━━━━━━━━━━━━━━━━━")
+
+-- Verificar automaticamente ao iniciar
+spawn(function()
+    task.wait(2)
+    local hasUpdate, latestVer = checkForUpdates()
+    if hasUpdate then
+        updateStatus:Set("⚠️ Nova versão " .. latestVer .. " disponível!")
+        Rayfield:Notify({
+            Title = "Atualização Disponível",
+            Content = "Versão " .. latestVer .. " disponível! Vá em 'Atualizações'",
+            Duration = 7
+        })
+    else
+        updateStatus:Set("✅ Versão " .. VERSION .. " atualizada!")
+    end
+end)
+
+-- ==================== SEU CÓDIGO ORIGINAL AQUI ====================
+-- (todo o seu código original permanece igual, só adicionei a parte de versão acima)
+
+--// SECTIONS
+local SectionGuras = Window:CreateTab("Guras", 4483362458)
+local SectionCameras = Window:CreateTab("📸 Câmeras", 4483362458)
+local SectionMovimento = Window:CreateTab("🏃 Movimento", 4483362458)
+local SectionPortais = Window:CreateTab("🌀 Portais", 4483362458)
+
+--// SERVIÇOS
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local cam = workspace.CurrentCamera
+
+--// VARIÁVEIS CÂMERAS
+local cameras = {}
+local cameraAtual = 1
+local vendoCamera = false
+local speedAtivo = false
+local speedValor = 16
+
+--// VARIÁVEIS PORTAIS
+local portalAtivo = false
+local modoClique = false
+local formatoPortal = "Cilindro"
+local portaisAtivos = {}
+local paresPortais = {}
+local numerosDisponiveis = {}
+local maiorNumero = 0
+local teleportCooldown = {}
+local mouse = player:GetMouse()
+
+--// VARIÁVEIS DE SELEÇÃO E EDIÇÃO
+local portaisSelecionados = {}
+
+--// NOVAS VARIÁVEIS - AJUSTES DOS PORTAIS
+local alturaPortalClique = 3
+local tempoTeleporteCooldown = 1
+local tamanhoPortal = 6
+local distanciaAparicao = 3
+local ladoAparicao = "Frente"
+local transparenciaPortal = 0.3
+local rotacaoPortal = 0
+
+-- Cores aleatórias para cada par
+local function gerarCores()
+    local hue = math.random(0, 360)
+    local cor1 = Color3.fromHSV(hue / 360, 0.8, 1)
+    local cor2 = Color3.fromHSV(hue / 360, 0.5, 1)
+    return cor1, cor2
+end
+
+local function obterProximoNumero()
+    if #numerosDisponiveis > 0 then
+        table.sort(numerosDisponiveis)
+        return table.remove(numerosDisponiveis, 1)
+    else
+        maiorNumero = maiorNumero + 1
+        return maiorNumero
+    end
+end
+
+local function liberarNumero(numero)
+    table.insert(numerosDisponiveis, numero)
+end
+
+--// LABEL INFO CÂMERAS
+local infoLabel = SectionCameras:CreateLabel("Nenhuma câmera criada")
+
+local function atualizarInfo()
+    infoLabel:Set("Câmera: "..cameraAtual.." / "..#cameras)
+end
+
+--// FUNÇÃO PARA CRIAR CÂMERA REALISTA TIPO 📷
+local function criarCameraRealista(position)
+    local model = Instance.new("Model")
+    model.Name = "Camera3D"
+    model.Parent = workspace
+
+    local corpo = Instance.new("Part")
+    corpo.Size = Vector3.new(3, 2.5, 2.8)
+    corpo.Material = Enum.Material.SmoothPlastic
+    corpo.Color = Color3.fromRGB(25, 25, 25)
+    corpo.Anchored = true
+    corpo.CanCollide = false
+    corpo.CFrame = position
+    corpo.Parent = model
+
+    local topo = Instance.new("Part")
+    topo.Size = Vector3.new(2.5, 0.8, 1.8)
+    topo.Material = Enum.Material.SmoothPlastic
+    topo.Color = Color3.fromRGB(30, 30, 30)
+    topo.Anchored = true
+    topo.CanCollide = false
+    topo.CFrame = corpo.CFrame * CFrame.new(0, 1.65, 0.3)
+    topo.Parent = model
+
+    local flash = Instance.new("Part")
+    flash.Shape = Enum.PartType.Ball
+    flash.Size = Vector3.new(0.5, 0.5, 0.5)
+    flash.Material = Enum.Material.Neon
+    flash.Color = Color3.fromRGB(255, 255, 200)
+    flash.Anchored = true
+    flash.CanCollide = false
+    flash.CFrame = topo.CFrame * CFrame.new(-0.8, 0, -0.6)
+    flash.Parent = model
+
+    local lente = Instance.new("Part")
+    lente.Shape = Enum.PartType.Cylinder
+    lente.Size = Vector3.new(1.2, 2.2, 2.2)
+    lente.Material = Enum.Material.Glass
+    lente.Color = Color3.fromRGB(15, 15, 20)
+    lente.Transparency = 0.2
+    lente.Reflectance = 0.6
+    lente.Anchored = true
+    lente.CanCollide = false
+    lente.CFrame = corpo.CFrame * CFrame.new(0, -0.2, -2) * CFrame.Angles(0, 0, math.rad(90))
+    lente.Parent = model
+
+    local anel = Instance.new("Part")
+    anel.Shape = Enum.PartType.Cylinder
+    anel.Size = Vector3.new(0.4, 2.6, 2.6)
+    anel.Material = Enum.Material.Metal
+    anel.Color = Color3.fromRGB(80, 80, 85)
+    anel.Reflectance = 0.4
+    anel.Anchored = true
+    anel.CanCollide = false
+    anel.CFrame = lente.CFrame * CFrame.new(0, 0, 0)
+    anel.Parent = model
+
+    local lenteInterna = Instance.new("Part")
+    lenteInterna.Shape = Enum.PartType.Cylinder
+    lenteInterna.Size = Vector3.new(0.8, 1.4, 1.4)
+    lenteInterna.Material = Enum.Material.Glass
+    lenteInterna.Color = Color3.fromRGB(50, 50, 150)
+    lenteInterna.Transparency = 0.3
+    lenteInterna.Reflectance = 0.7
+    lenteInterna.Anchored = true
+    lenteInterna.CanCollide = false
+    lenteInterna.CFrame = lente.CFrame * CFrame.new(0.3, 0, 0)
+    lenteInterna.Parent = model
+
+    local visor = Instance.new("Part")
+    visor.Size = Vector3.new(2, 1.5, 0.15)
+    visor.Material = Enum.Material.Neon
+    visor.Color = Color3.fromRGB(5, 5, 10)
+    visor.Anchored = true
+    visor.CanCollide = false
+    visor.CFrame = corpo.CFrame * CFrame.new(0, 0.3, 1.5)
+    visor.Parent = model
+
+    local surfaceGui = Instance.new("SurfaceGui")
+    surfaceGui.Face = Enum.NormalId.Front
+    surfaceGui.Parent = visor
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 1, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+    frame.BorderSizePixel = 0
+    frame.Parent = surfaceGui
+
+    local textoRec = Instance.new("TextLabel")
+    textoRec.Size = UDim2.new(0.4, 0, 0.25, 0)
+    textoRec.Position = UDim2.new(0.05, 0, 0.05, 0)
+    textoRec.BackgroundTransparency = 1
+    textoRec.Text = "● REC"
+    textoRec.TextColor3 = Color3.fromRGB(255, 0, 0)
+    textoRec.TextScaled = true
+    textoRec.Font = Enum.Font.GothamBold
+    textoRec.Parent = frame
+
+    local grip = Instance.new("Part")
+    grip.Size = Vector3.new(0.8, 2, 1.2)
+    grip.Material = Enum.Material.SmoothPlastic
+    grip.Color = Color3.fromRGB(35, 35, 35)
+    grip.Anchored = true
+    grip.CanCollide = false
+    grip.CFrame = corpo.CFrame * CFrame.new(1.8, -1, 0.5)
+    grip.Parent = model
+
+    for i = 1, 5 do
+        local linha = Instance.new("Part")
+        linha.Size = Vector3.new(0.81, 0.1, 1.2)
+        linha.Material = Enum.Material.SmoothPlastic
+        linha.Color = Color3.fromRGB(45, 45, 45)
+        linha.Anchored = true
+        linha.CanCollide = false
+        linha.CFrame = grip.CFrame * CFrame.new(0, 0.8 - (i * 0.35), 0)
+        linha.Parent = model
+    end
+
+    local botaoDisparo = Instance.new("Part")
+    botaoDisparo.Shape = Enum.PartType.Cylinder
+    botaoDisparo.Size = Vector3.new(0.4, 0.6, 0.6)
+    botaoDisparo.Material = Enum.Material.SmoothPlastic
+    botaoDisparo.Color = Color3.fromRGB(200, 0, 0)
+    botaoDisparo.Anchored = true
+    botaoDisparo.CanCollide = false
+    botaoDisparo.CFrame = topo.CFrame * CFrame.new(0.8, 0.3, -0.3) * CFrame.Angles(0, 0, math.rad(90))
+    botaoDisparo.Parent = model
+
+    local visorOtico = Instance.new("Part")
+    visorOtico.Shape = Enum.PartType.Ball
+    visorOtico.Size = Vector3.new(0.4, 0.4, 0.4)
+    visorOtico.Material = Enum.Material.Glass
+    visorOtico.Color = Color3.fromRGB(0, 0, 0)
+    visorOtico.Transparency = 0.3
+    visorOtico.Anchored = true
+    visorOtico.CanCollide = false
+    visorOtico.CFrame = topo.CFrame * CFrame.new(0.5, 0.2, 0.8)
+    visorOtico.Parent = model
+
+    local led = Instance.new("Part")
+    led.Shape = Enum.PartType.Ball
+    led.Size = Vector3.new(0.3, 0.3, 0.3)
+    led.Material = Enum.Material.Neon
+    led.Color = Color3.fromRGB(255, 0, 0)
+    led.Anchored = true
+    led.CanCollide = false
+    led.CFrame = corpo.CFrame * CFrame.new(-1.3, 1, -1)
+    led.Parent = model
+
+    local luz = Instance.new("PointLight")
+    luz.Brightness = 3
+    luz.Range = 8
+    luz.Color = Color3.fromRGB(255, 0, 0)
+    luz.Parent = led
+
+    spawn(function()
+        while led and led.Parent do
+            led.Transparency = 0
+            luz.Enabled = true
+            task.wait(0.6)
+            led.Transparency = 0.5
+            luz.Enabled = false
+            task.wait(0.6)
+        end
+    end)
+
+    local alca = Instance.new("Part")
+    alca.Shape = Enum.PartType.Cylinder
+    alca.Size = Vector3.new(2.5, 0.3, 0.3)
+    alca.Material = Enum.Material.Metal
+    alca.Color = Color3.fromRGB(40, 40, 40)
+    alca.Anchored = true
+    alca.CanCollide = false
+    alca.CFrame = topo.CFrame * CFrame.new(0, 0.8, 0.3)
+    alca.Parent = model
+
+    model.PrimaryPart = corpo
+    return corpo
+end
+
+player.CharacterAdded:Connect(function(char)
+    task.wait(0.5)
+    if vendoCamera and #cameras > 0 then
+        cam.CameraType = Enum.CameraType.Custom
+        cam.CameraSubject = cameras[cameraAtual]
+    end
+    if speedAtivo then
+        local humanoid = char:WaitForChild("Humanoid", 5)
+        if humanoid then
+            humanoid.WalkSpeed = speedValor
+        end
+    end
+end)
+
+SectionGuras:CreateButton({
+    Name = "📷 Criar Câmera Realista",
+    Callback = function()
+        local char = player.Character
+        if not char then return end
+        local head = char:FindFirstChild("Head")
+        if not head then return end
+        local cameraPart = criarCameraRealista(head.CFrame * CFrame.new(0, 3, -5))
+        table.insert(cameras, cameraPart)
+        cameraAtual = #cameras
+        atualizarInfo()
+        Rayfield:Notify({Title = "✅ Câmera Criada", Content = "Câmera realista #"..cameraAtual.." criada!", Duration = 3})
+    end
+})
+
+SectionCameras:CreateToggle({
+    Name = "👁️ Ver pela Câmera",
+    CurrentValue = false,
+    Callback = function(value)
+        if #cameras == 0 then
+            Rayfield:Notify({Title = "Aviso", Content = "Nenhuma câmera criada", Duration = 3})
+            return
+        end
+        vendoCamera = value
+        if vendoCamera then
+            cam.CameraType = Enum.CameraType.Custom
+            cam.CameraSubject = cameras[cameraAtual]
+        else
+            cam.CameraType = Enum.CameraType.Custom
+            local char = player.Character
+            if char then
+                local humanoid = char:FindFirstChildOfClass("Humanoid")
+                if humanoid then
+                    cam.CameraSubject = humanoid
+                end
+            end
+        end
+    end
+})
+
+SectionCameras:CreateButton({
+    Name = "🔁 Trocar Câmera",
+    Callback = function()
+        if #cameras <= 1 then return end
+        cameraAtual += 1
+        if cameraAtual > #cameras then cameraAtual = 1 end
+        if vendoCamera then cam.CameraSubject = cameras[cameraAtual] end
+        atualizarInfo()
+    end
+})
+
+SectionCameras:CreateButton({
+    Name = "🗑️ Deletar Câmera Atual",
+    Callback = function()
+        if #cameras == 0 then return end
+        local cameraPart = cameras[cameraAtual]
+        if cameraPart and cameraPart.Parent then cameraPart.Parent:Destroy() end
+        table.remove(cameras, cameraAtual)
+        if cameraAtual > #cameras then cameraAtual = math.max(1, #cameras) end
+        atualizarInfo()
+        if #cameras == 0 then
+            vendoCamera = false
+            cam.CameraType = Enum.CameraType.Custom
+            local char = player.Character
+            if char then
+                local humanoid = char:FindFirstChildOfClass("Humanoid")
+                if humanoid then cam.CameraSubject = humanoid end
+            end
+        end
+        Rayfield:Notify({Title = "Câmera Deletada", Content = "Câmera removida com sucesso", Duration = 2})
+    end
+})
+
+SectionMovimento:CreateToggle({
+    Name = "⚡ Ativar Speed",
+    CurrentValue = false,
+    Callback = function(value)
+        speedAtivo = value
+        local char = player.Character
+        if char then
+            local humanoid = char:FindFirstChildOfClass("Humanoid")
+            if humanoid then humanoid.WalkSpeed = speedAtivo and speedValor or 16 end
+        end
+    end
+})
+
+SectionMovimento:CreateSlider({
+    Name = "Velocidade",
+    Range = {16,100},
+    Increment = 1,
+    Suffix = "Studs",
+    CurrentValue = 16,
+    Callback = function(val)
+        speedValor = val
+        if speedAtivo then
+            local char = player.Character
+            if char then
+                local humanoid = char:FindFirstChildOfClass("Humanoid")
+                if humanoid then humanoid.WalkSpeed = speedValor end
+            end
+        end
+    end
+})
+
+local function teleportarJogador(dePortal, paraPortal)
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+    local playerName = player.Name
+    if teleportCooldown[playerName] then return end
+    teleportCooldown[playerName] = true
+    
+    local novaPosicao
+    if ladoAparicao == "Frente" then
+        novaPosicao = paraPortal.CFrame * CFrame.new(0, 0, -distanciaAparicao)
+    elseif ladoAparicao == "Trás" then
+        novaPosicao = paraPortal.CFrame * CFrame.new(0, 0, distanciaAparicao)
+    elseif ladoAparicao == "Esquerda" then
+        novaPosicao = paraPortal.CFrame * CFrame.new(-distanciaAparicao, 0, 0)
+    elseif ladoAparicao == "Direita" then
+        novaPosicao = paraPortal.CFrame * CFrame.new(distanciaAparicao, 0, 0)
+    elseif ladoAparicao == "Cima" then
+        novaPosicao = paraPortal.CFrame * CFrame.new(0, distanciaAparicao, 0)
+    elseif ladoAparicao == "Baixo" then
+        novaPosicao = paraPortal.CFrame * CFrame.new(0, -distanciaAparicao, 0)
+    end
+    
+    player.Character:SetPrimaryPartCFrame(novaPosicao)
+    task.wait(tempoTeleporteCooldown)
+    teleportCooldown[playerName] = nil
+end
+
+local function criarPortal(posicao, olhandoPara)
+    if not player.Character then return end
+    local numeroPortal = obterProximoNumero()
+    local numeroPar = (numeroPortal % 2 == 1) and numeroPortal + 1 or numeroPortal - 1
+    local indicePar = math.ceil(numeroPortal / 2)
+    
+    if not paresPortais[indicePar] then
+        local cor1, cor2 = gerarCores()
+        paresPortais[indicePar] = {cor1 = cor1, cor2 = cor2}
+    end
+    
+    local cor = (numeroPortal % 2 == 1) and paresPortais[indicePar].cor1 or paresPortais[indicePar].cor2
+    local portal = Instance.new("Part")
+    portal.Name = "Portal_" .. numeroPortal
+    portal.Anchored = true
+    portal.CanCollide = false
+    portal.Material = Enum.Material.Neon
+    portal.Color = cor
+    portal.Transparency = transparenciaPortal
+    
+    local cframe = CFrame.new(posicao, posicao + olhandoPara) * CFrame.Angles(0, math.rad(rotacaoPortal), 0)
+    
+    if formatoPortal == "Cilindro" then
+        portal.Shape = Enum.PartType.Cylinder
+        portal.Size = Vector3.new(0.5, tamanhoPortal, tamanhoPortal)
+        portal.CFrame = cframe * CFrame.Angles(0, math.rad(90), 0)
+    elseif formatoPortal == "Esfera" then
+        portal.Shape = Enum.PartType.Ball
+        portal.Size = Vector3.new(tamanhoPortal, tamanhoPortal, tamanhoPortal)
+        portal.CFrame = cframe
+    elseif formatoPortal == "Retângulo" then
+        portal.Shape = Enum.PartType.Block
+        portal.Size = Vector3.new(0.5, tamanhoPortal * 1.3, tamanhoPortal * 0.8)
+        portal.CFrame = cframe
+    elseif formatoPortal == "Quadrado" then
+        portal.Shape = Enum.PartType.Block
+        portal.Size = Vector3.new(0.5, tamanhoPortal, tamanhoPortal)
+        portal.CFrame = cframe
+    elseif formatoPortal == "Triângulo" then
+        portal.Shape = Enum.PartType.Block
+        portal.Size = Vector3.new(0.5, tamanhoPortal, tamanhoPortal)
+        portal.CFrame = cframe
+        local wedge1 = Instance.new("WedgePart")
+        wedge1.Size = Vector3.new(0.5, tamanhoPortal * 0.5, tamanhoPortal)
+        wedge1.Material = Enum.Material.Neon
+        wedge1.Color = cor
+        wedge1.Transparency = transparenciaPortal
+        wedge1.Anchored = true
+        wedge1.CanCollide = false
+        wedge1.CFrame = portal.CFrame * CFrame.new(0, tamanhoPortal * 0.25, 0) * CFrame.Angles(0, 0, math.rad(180))
+        wedge1.Parent = portal
+    end
+    
+    portal.Parent = workspace
+    
+    local billboard = Instance.new("BillboardGui")
+    billboard.Size = UDim2.new(0, 100, 0, 100)
+    billboard.Adornee = portal
+    billboard.AlwaysOnTop = true
+    billboard.Parent = portal
+    
+    local textoNumero = Instance.new("TextLabel")
+    textoNumero.Size = UDim2.new(1, 0, 1, 0)
+    textoNumero.BackgroundTransparency = 1
+    textoNumero.Text = tostring(numeroPortal)
+    textoNumero.Font = Enum.Font.GothamBold
+    textoNumero.TextSize = 70
+    textoNumero.TextColor3 = Color3.new(1, 1, 1)
+    textoNumero.TextStrokeTransparency = 0
+    textoNumero.TextStrokeColor3 = Color3.new(0, 0, 0)
+    textoNumero.Parent = billboard
+    
+    local function criarZona(offsetZ)
+        local zona = Instance.new("Part")
+        zona.Name = "Zona_" .. numeroPortal
+        zona.Size = Vector3.new(tamanhoPortal + 1, tamanhoPortal + 3, 2)
+        zona.Transparency = 1
+        zona.CanCollide = false
+        zona.Anchored = true
+        zona.CFrame = portal.CFrame * CFrame.new(0, 0, offsetZ)
+        zona.Parent = portal
+        zona.Touched:Connect(function(hit)
+            if hit.Parent and hit.Parent:FindFirstChild("Humanoid") then
+                if hit.Parent.Name == player.Name then
+                    local portalDestino = portaisAtivos[numeroPar]
+                    if portalDestino then teleportarJogador(portal, portalDestino) end
+                end
+            end
+        end)
+    end
+    
+    criarZona(3)
+    criarZona(-3)
+    portaisAtivos[numeroPortal] = portal
+    Rayfield:Notify({Title = "Portal #" .. numeroPortal .. " Criado", Content = "Teleporta para Portal #" .. numeroPar, Duration = 2})
+end
+
+local function processarNumeros(texto)
+    local numeros = {}
+    for parte in string.gmatch(texto, "[^,]+") do
+        parte = parte:match("^%s*(.-)%s*$")
+        if string.find(parte, "-") then
+            local inicio, fim = string.match(parte, "(%d+)%-(%d+)")
+            if inicio and fim then
+                inicio, fim = tonumber(inicio), tonumber(fim)
+                for i = inicio, fim do table.insert(numeros, i) end
+            end
+        else
+            local num = tonumber(parte)
+            if num then table.insert(numeros, num) end
+        end
+    end
+    return numeros
+end
+
+local function atualizarAlturaPortaisSelecionados(novaAltura)
+    for _, numero in ipairs(portaisSelecionados) do
+        local portal = portaisAtivos[numero]
+        if portal and portal.Parent then
+            local posicaoAtual = portal.Position
+            portal.Position = Vector3.new(posicaoAtual.X, posicaoAtual.Y + novaAltura, posicaoAtual.Z)
+        end
+    end
+end
+
+local function atualizarTamanhoPortaisSelecionados(novoTamanho)
+    for _, numero in ipairs(portaisSelecionados) do
+        local portal = portaisAtivos[numero]
+        if portal and portal.Parent then
+            if portal.Shape == Enum.PartType.Cylinder then
+                portal.Size = Vector3.new(0.5, novoTamanho, novoTamanho)
+            elseif portal.Shape == Enum.PartType.Ball then
+                portal.Size = Vector3.new(novoTamanho, novoTamanho, novoTamanho)
+            elseif portal.Shape == Enum.PartType.Block then
+                if portal.Size.Y > portal.Size.Z then
+                    portal.Size = Vector3.new(0.5, novoTamanho * 1.3, novoTamanho * 0.8)
+                else
+                    portal.Size = Vector3.new(0.5, novoTamanho, novoTamanho)
+                end
+            end
+            for _, child in ipairs(portal:GetChildren()) do
+                if child:IsA("WedgePart") then
+                    child.Size = Vector3.new(0.5, novoTamanho * 0.5, novoTamanho)
+                    child.CFrame = portal.CFrame * CFrame.new(0, novoTamanho * 0.25, 0) * CFrame.Angles(0, 0, math.rad(180))
+                end
+            end
+            for _, child in ipairs(portal:GetChildren()) do
+                if child.Name:match("Zona_") then
+                    child.Size = Vector3.new(novoTamanho + 1, novoTamanho + 3, 2)
+                end
+            end
+        end
+    end
+end
+
+local function atualizarTransparenciaPortaisSelecionados(novaTransparencia)
+    for _, numero in ipairs(portaisSelecionados) do
+        local portal = portaisAtivos[numero]
+        if portal and portal.Parent then
+            portal.Transparency = novaTransparencia
+            for _, child in ipairs(portal:GetChildren()) do
+                if child:IsA("WedgePart") then child.Transparency = novaTransparencia end
+            end
+        end
+    end
+end
+
+local function atualizarRotacaoPortaisSelecionados(novaRotacao)
+    for _, numero in ipairs(portaisSelecionados) do
+        local portal = portaisAtivos[numero]
+        if portal and portal.Parent then
+            local posicaoAtual = portal.Position
+            local novoCFrame = CFrame.new(posicaoAtual) * CFrame.Angles(0, math.rad(novaRotacao), 0)
+            if portal.Shape == Enum.PartType.Cylinder then
+                portal.CFrame = novoCFrame * CFrame.Angles(0, math.rad(90), 0)
+            else
+                portal.CFrame = novoCFrame
+            end
+            for _, child in ipairs(portal:GetChildren()) do
+                if child.Name:match("Zona_") then
+                    local offset = child.CFrame.Z > portal.CFrame.Z and 3 or -3
+                    child.CFrame = portal.CFrame * CFrame.new(0, 0, offset)
+                end
+            end
+        end
+    end
+end
+
+SectionPortais:CreateLabel("🎯 SELEÇÃO DE PORTAIS")
+
+local inputSelecionarPortais = SectionPortais:CreateInput({
+    Name = "Selecionar Portais (ex: 1,2,3 ou 1-5)",
+    PlaceholderText = "Digite os números",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(texto)
+        portaisSelecionados = processarNumeros(texto)
+        if #portaisSelecionados > 0 then
+            Rayfield:Notify({Title = "Portais Selecionados", Content = #portaisSelecionados .. " portal(is) selecionado(s)!", Duration = 2})
+        end
+    end
+})
+
+SectionPortais:CreateLabel("━━━━━━━━━━━━━━━━━━━━")
+SectionPortais:CreateLabel("🔧 EDITAR PORTAIS SELECIONADOS")
+
+SectionPortais:CreateSlider({
+    Name = "⬆️ Altura (Selecionados)",
+    Range = {-10, 20},
+    Increment = 0.5,
+    Suffix = " studs",
+    CurrentValue = 0,
+    Callback = function(val)
+        if #portaisSelecionados == 0 then
+            Rayfield:Notify({Title = "Aviso", Content = "Selecione portais primeiro!", Duration = 2})
+            return
+        end
+        atualizarAlturaPortaisSelecionados(val - alturaPortalClique)
+        alturaPortalClique = val
+    end
+})
+
+SectionPortais:CreateSlider({
+    Name = "📏 Tamanho (Selecionados)",
+    Range = {2, 20},
+    Increment = 0.5,
+    Suffix = " studs",
+    CurrentValue = 6,
+    Callback = function(val)
+        if #portaisSelecionados == 0 then
+            Rayfield:Notify({Title = "Aviso", Content = "Selecione portais primeiro!", Duration = 2})
+            return
+        end
+        tamanhoPortal = val
+        atualizarTamanhoPortaisSelecionados(val)
+    end
+})
+
+SectionPortais:CreateSlider({
+    Name = "👻 Transparência (Selecionados)",
+    Range = {0, 1},
+    Increment = 0.05,
+    Suffix = "",
+    CurrentValue = 0.3,
+    Callback = function(val)
+        if #portaisSelecionados == 0 then
+            Rayfield:Notify({Title = "Aviso", Content = "Selecione portais primeiro!", Duration = 2})
+            return
+        end
+        transparenciaPortal = val
+        atualizarTransparenciaPortaisSelecionados(val)
+    end
+})
+
+SectionPortais:CreateSlider({
+    Name = "🔄 Rotação (Selecionados)",
+    Range = {0, 360},
+    Increment = 5,
+    Suffix = "°",
+    CurrentValue = 0,
+    Callback = function(val)
+        if #portaisSelecionados == 0 then
+            Rayfield:Notify({Title = "Aviso", Content = "Selecione portais primeiro!", Duration = 2})
+            return
+        end
+        rotacaoPortal = val
+        atualizarRotacaoPortaisSelecionados(val)
+    end
+})
+
+SectionPortais:CreateSlider({
+    Name = "📍 Distância de Aparição",
+    Range = {1, 15},
+    Increment = 0.5,
+    Suffix = " studs",
+    CurrentValue = 3,
+    Callback = function(val)
+        distanciaAparicao = val
+        Rayfield:Notify({Title = "Distância Ajustada", Content = "Aparecerá a " .. val .. " studs", Duration = 1.5})
+    end
+})
+
+SectionPortais:CreateDropdown({
+    Name = "🧭 Lado de Aparição",
+    Options = {"Frente", "Trás", "Esquerda", "Direita", "Cima", "Baixo"},
+    CurrentOption = {"Frente"},
+    MultipleOptions = false,
+    Callback = function(option)
+        ladoAparicao = option[1]
+        Rayfield:Notify({Title = "Lado Alterado", Content = "Aparição: " .. ladoAparicao, Duration = 2})
+    end
+})
+
+SectionPortais:CreateSlider({
+    Name = "⏱️ Cooldown de Teleporte",
+    Range = {0, 10},
+    Increment = 0.5,
+    Suffix = " seg",
+    CurrentValue = 1,
+    Callback = function(val)
+        tempoTeleporteCooldown = val
+        Rayfield:Notify({Title = "Cooldown Ajustado", Content = val .. " segundos entre teleportes", Duration = 1.5})
+    end
+})
+
+SectionPortais:CreateLabel("━━━━━━━━━━━━━━━━━━━━")
+SectionPortais:CreateLabel("➕ CRIAR NOVOS PORTAIS")
+
+SectionPortais:CreateToggle({
+    Name = "🎯 Portal na Frente (4 studs)",
+    CurrentValue = false,
+    Callback = function(value)
+        portalAtivo = value
+        if value then modoClique = false end
+    end
+})
+
+SectionPortais:CreateToggle({
+    Name = "🖱️ Portal no Clique",
+    CurrentValue = false,
+    Callback = function(value)
+        modoClique = value
+        if value then portalAtivo = false end
+    end
+})
+
+SectionPortais:CreateSlider({
+    Name = "⬆️ Altura do Portal (Modo Clique)",
+    Range = {0, 20},
+    Increment = 0.5,
+    Suffix = " studs",
+    CurrentValue = 3,
+    Callback = function(val)
+        alturaPortalClique = val
+        Rayfield:Notify({Title = "Altura Ajustada", Content = "Portal será criado a " .. val .. " studs do chão", Duration = 1.5})
+    end
+})
+
+SectionPortais:CreateDropdown({
+    Name = "🔷 Formato do Portal",
+    Options = {"Cilindro", "Esfera", "Retângulo", "Quadrado", "Triângulo"},
+    CurrentOption = {"Cilindro"},
+    MultipleOptions = false,
+    Callback = function(option)
+        formatoPortal = option[1]
+        Rayfield:Notify({Title = "Formato Alterado", Content = "Portal: " .. formatoPortal, Duration = 2})
+    end
+})
+
+SectionPortais:CreateLabel("━━━━━━━━━━━━━━━━━━━━")
+SectionPortais:CreateLabel("🗑️ DELETAR PORTAIS")
+
+local inputDeletarPortais = SectionPortais:CreateInput({
+    Name = "Digite os números (ex: 1,2,3,5)",
+    PlaceholderText = "1,2,3 ou 1-5",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(texto) end
+})
+
+SectionPortais:CreateButton({
+    Name = "🗑️ DELETAR Portais Selecionados",
+    Callback = function()
+        local texto = inputDeletarPortais.CurrentValue or ""
+        if texto == "" then
+            Rayfield:Notify({Title = "Erro", Content = "Digite os números dos portais!", Duration = 3})
+            return
+        end
+        local portaisDeletados = 0
+        local numerosParaDeletar = processarNumeros(texto)
+        for _, num in ipairs(numerosParaDeletar) do
+            if portaisAtivos[num] then
+                portaisAtivos[num]:Destroy()
+                portaisAtivos[num] = nil
+                liberarNumero(num)
+                portaisDeletados = portaisDeletados + 1
+            end
+        end
+        if portaisDeletados > 0 then
+            Rayfield:Notify({Title = "Portais Deletados", Content = portaisDeletados .. " portal(is) removido(s)!", Duration = 3})
+        else
+            Rayfield:Notify({Title = "Aviso", Content = "Nenhum portal encontrado", Duration = 3})
+        end
+    end
+})
+
+SectionPortais:CreateButton({
+    Name = "🗑️ DELETAR Todos os Portais",
+    Callback = function()
+        for numero, portal in pairs(portaisAtivos) do portal:Destroy() end
+        portaisAtivos = {}
+        paresPortais = {}
+        numerosDisponiveis = {}
+        maiorNumero = 0
+        teleportCooldown = {}
+        portaisSelecionados = {}
+        Rayfield:Notify({Title = "Portais", Content = "Todos os portais deletados!", Duration = 3})
+    end
+})
+
+SectionPortais:CreateLabel("Info: 1↔2 | 3↔4 | 5↔6 | 7↔8...")
+
+mouse.Button1Down:Connect(function()
+    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    if portalAtivo then
+        local posicao = (hrp.CFrame * CFrame.new(0, 0, -4)).Position
+        local olhando = hrp.CFrame.LookVector
+        criarPortal(posicao, olhando)
+    elseif modoClique then
+        local posicaoBase = mouse.Hit.Position
+        local posicaoFinal = Vector3.new(posicaoBase.X, posicaoBase.Y + alturaPortalClique, posicaoBase.Z)
+        local olhando = hrp.CFrame.LookVector
+        criarPortal(posicaoFinal, olhando)
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if vendoCamera and #cameras > 0 then
+        if cam.CameraSubject ~= cameras[cameraAtual] then
+            cam.CameraSubject = cameras[cameraAtual]
+        end
+    end
+end)
+
+print("=========================================")
+print("✅ SISTEMA COMPLETO CARREGADO!")
+print("📷 Câmeras | 🏃 Movimento | 🌀 Portais")
+print("🔧 Versão: " .. VERSION)
+print("🔄 Sistema de atualização ativo!")
+print("=========================================")
