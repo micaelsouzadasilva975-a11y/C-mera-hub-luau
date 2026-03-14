@@ -7,12 +7,12 @@
      ╚═════╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝
     
     CAMERA HUB - SISTEMA COMPLETO
-    Versão: 2.0.0
+    Versão: 2.1.0
     Data: 2026
 ]]
 
 -- ==================== SISTEMA DE VERSÃO ====================
-local VERSION = "2.0.0"
+local VERSION = "2.1.0"
 local SCRIPT_URL = "https://raw.githubusercontent.com/seu_usuario/seu_repo/main/camera_hub.lua" -- COLOQUE SUA URL AQUI!
 local GITHUB_RAW_URL = "https://raw.githubusercontent.com/seu_usuario/seu_repo/main/version.txt" -- URL para arquivo de versão
 
